@@ -1,6 +1,6 @@
 namespace go basicuser
 
-include "../base.thrift"
+include "base.thrift"
 
 /*
  用户服务 - common struct
