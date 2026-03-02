@@ -1,0 +1,5 @@
+# infra.yaml记录基础组件相关的配置
+Cache:
+  #  Addr: "redis-master.redis:6379"
+  Addr: "127.0.0.1:6379"
+  Password: "123456"
