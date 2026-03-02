@@ -2,10 +2,12 @@ package user
 
 import (
 	"context"
+	"time"
 
 	"github.com/xh-polaris/inno_agent/biz/api/model/basicuser"
 	"github.com/xh-polaris/inno_agent/biz/api/model/base"
 	"github.com/xh-polaris/inno_agent/biz/application/base/token"
+	"github.com/xh-polaris/inno_agent/biz/conf"
 	domainSVC "github.com/xh-polaris/inno_agent/biz/domain/user/service"
 	"go.mongodb.org/mongo-driver/bson"
 )
@@ -14,16 +16,34 @@ var UserAppSVC *UserApplicationService
 
 type UserApplicationService struct {
 	DomainSVC domainSVC.UserDomainSVC
-	TokenSVC  *token.TokenService
 }
 
 func (s *UserApplicationService) Login(ctx context.Context, req *basicuser.LoginReq) (*basicuser.LoginResp, error) {
-	u, tok, isNew, err := s.DomainSVC.Login(ctx, req.AuthType, req.AuthId, req.Verify)
+	u, isNew, err := s.DomainSVC.Login(ctx, req.AuthType, req.AuthId, req.Verify)
 	if err != nil {
 		return &basicuser.LoginResp{
 			Resp: &base.Response{Code: -1, Msg: err.Error()},
 		}, nil
 	}
+
+	// Application 层用本项目私钥签发 JWT
+	tokenConf := conf.GetConfig().Token
+	info := &token.Info{
+		BasicUserId: u.BasicUserId,
+		Code:        u.StudentId,
+		Phone:       u.Phone,
+		Email:       u.Email,
+		LoginTime:   time.Now().Unix(),
+		AuthType:    req.AuthType,
+		Extra:       map[string]any{},
+	}
+	tok, err := token.SignJWT(tokenConf, info)
+	if err != nil {
+		return &basicuser.LoginResp{
+			Resp: &base.Response{Code: -1, Msg: err.Error()},
+		}, nil
+	}
+
 	name := u.Name
 	avatar := u.Avatar
 	return &basicuser.LoginResp{
@@ -37,15 +57,13 @@ func (s *UserApplicationService) Login(ctx context.Context, req *basicuser.Login
 
 func (s *UserApplicationService) Register(ctx context.Context, req *basicuser.RegisterReq) (*basicuser.RegisterResp, error) {
 	password := req.GetPassword()
-	tok, err := s.DomainSVC.Register(ctx, req.AuthType, req.AuthId, req.Verify, password)
-	if err != nil {
+	if err := s.DomainSVC.Register(ctx, req.AuthType, req.AuthId, req.Verify, password); err != nil {
 		return &basicuser.RegisterResp{
 			Resp: &base.Response{Code: -1, Msg: err.Error()},
 		}, nil
 	}
 	return &basicuser.RegisterResp{
-		Resp:  &base.Response{Code: 0, Msg: "ok"},
-		Token: &tok,
+		Resp: &base.Response{Code: 0, Msg: "ok"},
 	}, nil
 }
 

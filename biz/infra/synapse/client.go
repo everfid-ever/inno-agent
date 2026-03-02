@@ -5,14 +5,11 @@ import "context"
 // LoginResult Synapse 登录返回结果
 type LoginResult struct {
 	BasicUserId string
-	Token       string
 	IsNew       bool
 }
 
-// RegisterResult Synapse 注册返回结果
-type RegisterResult struct {
-	Token string
-}
+// RegisterResult Synapse 注册返回结果（暂未使用 Token）
+type RegisterResult struct{}
 
 // Client Synapse 账号中台 HTTP 客户端接口
 type Client interface {

@@ -46,7 +46,7 @@ func (m *mongoMapperImpl) FindByBasicUserId(ctx context.Context, basicUserId str
 }
 
 func (m *mongoMapperImpl) FindOrCreate(ctx context.Context, basicUserId, authType, authId string) (*model.User, bool, error) {
-	now := time.Now()
+	now := time.Now().UTC().Truncate(time.Millisecond)
 
 	namePrefix := basicUserId
 	if len(namePrefix) > 6 {
@@ -83,7 +83,9 @@ func (m *mongoMapperImpl) FindOrCreate(ctx context.Context, basicUserId, authTyp
 	if err != nil {
 		return nil, false, err
 	}
-	isNew := u.CreatedAt.Equal(u.UpdatedAt) || u.UpdatedAt.Sub(u.CreatedAt) < time.Second
+	// insert 时 createdAt 和 updatedAt 均为同一个 now，精确相等
+	// update 时 createdAt 为旧值，updatedAt 为新 now，不相等
+	isNew := u.CreatedAt.Equal(u.UpdatedAt)
 	return &u, isNew, nil
 }
 

@@ -24,24 +24,21 @@ func NewUserDomainSVC(userRepo repo.UserRepo, synapseClient synapse.Client) User
 	}
 }
 
-func (s *userDomainSVCImpl) Login(ctx context.Context, authType, authId, verify string) (*entity.User, string, bool, error) {
+func (s *userDomainSVCImpl) Login(ctx context.Context, authType, authId, verify string) (*entity.User, bool, error) {
 	result, err := s.synapseClient.Login(ctx, authType, authId, verify)
 	if err != nil {
-		return nil, "", false, err
+		return nil, false, err
 	}
 	u, isNew, err := s.userRepo.FindOrCreate(ctx, result.BasicUserId, authType, authId)
 	if err != nil {
-		return nil, "", false, err
+		return nil, false, err
 	}
-	return entity.NewUser(u), result.Token, isNew, nil
+	return entity.NewUser(u), isNew, nil
 }
 
-func (s *userDomainSVCImpl) Register(ctx context.Context, authType, authId, verify, password string) (string, error) {
-	result, err := s.synapseClient.Register(ctx, authType, authId, verify, password)
-	if err != nil {
-		return "", err
-	}
-	return result.Token, nil
+func (s *userDomainSVCImpl) Register(ctx context.Context, authType, authId, verify, password string) error {
+	_, err := s.synapseClient.Register(ctx, authType, authId, verify, password)
+	return err
 }
 
 func (s *userDomainSVCImpl) ResetPassword(ctx context.Context, authHeader, newPassword string) error {

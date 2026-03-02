@@ -22,7 +22,7 @@ func synapseURL() string {
 func buildHeader() http.Header {
 	header := http.Header{}
 	header.Set("content-type", "application/json")
-	if conf.GetConfig().State != "test" {
+	if conf.GetConfig().State == "test" {
 		header.Set("X-Xh-Env", "test")
 	}
 	return header
@@ -47,11 +47,9 @@ func (c *httpClientImpl) Login(ctx context.Context, authType, authId, verify str
 	}
 	basicUser, _ := resp["basicUser"].(map[string]any)
 	basicUserId, _ := basicUser["basicUserId"].(string)
-	token, _ := resp["token"].(string)
 	isNew, _ := resp["new"].(bool)
 	return &LoginResult{
 		BasicUserId: basicUserId,
-		Token:       token,
 		IsNew:       isNew,
 	}, nil
 }
@@ -74,8 +72,7 @@ func (c *httpClientImpl) Register(ctx context.Context, authType, authId, verify,
 		msg, _ := resp["message"].(string)
 		return nil, fmt.Errorf("synapse register error %d: %s", int(code), msg)
 	}
-	token, _ := resp["token"].(string)
-	return &RegisterResult{Token: token}, nil
+	return &RegisterResult{}, nil
 }
 
 func (c *httpClientImpl) ResetPassword(ctx context.Context, authHeader, newPassword string) error {

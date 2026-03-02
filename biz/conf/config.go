@@ -6,7 +6,7 @@ import (
 	"strings"
 	"sync"
 
-	u "github.com/zeromicro/go-zero/core/conf"
+	confx "github.com/zeromicro/go-zero/core/conf"
 	"github.com/zeromicro/go-zero/core/service"
 )
 
@@ -22,6 +22,7 @@ type Config struct {
 	SynapseURL string
 	Cache      *Cache
 	MongoDB    *MongoDB
+	Token      *Token
 }
 
 type Cache struct {
