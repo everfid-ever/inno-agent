@@ -6,7 +6,7 @@ import (
 	"strings"
 	"sync"
 
-	confx "github.com/zeromicro/go-zero/core/conf"
+	u "github.com/zeromicro/go-zero/core/conf"
 	"github.com/zeromicro/go-zero/core/service"
 )
 
@@ -17,10 +17,11 @@ var (
 
 type Config struct {
 	service.ServiceConf
-	ListenOn string
-	State    string
-	Cache    *Cache
-	MongoDB  *MongoDB
+	ListenOn   string
+	State      string
+	SynapseURL string
+	Cache      *Cache
+	MongoDB    *MongoDB
 }
 
 type Cache struct {
@@ -31,6 +32,7 @@ type Cache struct {
 type MongoDB struct {
 	Addr     string
 	Password string
+	Database string
 }
 
 func NewConfig() (*Config, error) {
@@ -58,7 +60,7 @@ func NewConfig() (*Config, error) {
 			panic(err)
 		}
 		config = c
-	})
+		})
 	return config, nil
 }
 
